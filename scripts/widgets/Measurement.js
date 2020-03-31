@@ -71,6 +71,7 @@ define(function() {
             activeTool: type
           })
         );
+       
       };
 
       const clearMeasurement = type => {
