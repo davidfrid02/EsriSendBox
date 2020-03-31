@@ -65,7 +65,8 @@ define(function() {
       const startMeasurement = type => {
         new Measurement({
           view: view,
-          activeTool: type
+          activeTool: type,
+          id: 'david-' + type
         });
       };
 
@@ -74,7 +75,7 @@ define(function() {
         //     view: view,
         //     activeTool: type
         //   }).clear();
-        alert('clear');
+        view.tools.items = [];
       };
 
       measurement = new Expand({
