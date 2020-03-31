@@ -4,6 +4,8 @@ define(function() {
       Expand,
       Measurement
     ) {
+      let measureWidget = [];
+
       const createCustomElement = ({
         elementType,
         measurementType,
@@ -63,18 +65,25 @@ define(function() {
       );
 
       const startMeasurement = type => {
-        new Measurement({
-          view: view,
-          activeTool: type
-        });
+        measureWidget.push(
+          new Measurement({
+            view: view,
+            activeTool: type
+          })
+        );
       };
 
       const clearMeasurement = type => {
+        measureWidget.forEach(mw => {
+          mw.clear();
+        });
+
+        measureWidget = [];
         // new Measurement({
         //     view: view,
         //     activeTool: type
         //   }).clear();
-        alert('clear');
+        // alert("clear");
       };
 
       measurement = new Expand({
