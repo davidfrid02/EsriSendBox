@@ -65,18 +65,25 @@ define(function() {
       );
 
       const startMeasurement = type => {
-        measureWidget.push(
-          new Measurement({
+        let isWidget = measureWidget.filter(w => w.measureType === type);
+        if (isWidget.length === 0) {
+          let widget = new Measurement({
             view: view,
             activeTool: type
-          })
-        );
-       
+          });
+          measureWidget.push({
+            measureType: type,
+            widget: widget
+          });
+        }
+        else{
+          isWidget[0].widget.activeWidget.viewModel.newMeasurement();
+        }
       };
 
       const clearMeasurement = type => {
         measureWidget.forEach(mw => {
-          mw.clear();
+          mw.widget.clear();
         });
 
         measureWidget = [];
