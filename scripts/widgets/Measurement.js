@@ -1,4 +1,4 @@
-define(function() {
+define(() => {
   const load = view => {
     require(["esri/widgets/Expand", "esri/widgets/Measurement"], function(
       Expand,
@@ -9,8 +9,8 @@ define(function() {
         measurementType,
         classList
       }) => {
-        let element = document.createElement(elementType);
-        for (let currClass of classList) {
+        const element = document.createElement(elementType);
+        for (const currClass of classList) {
           element.classList.add(currClass);
         }
         if (measurementType == "trash") {
@@ -25,7 +25,7 @@ define(function() {
         return element;
       };
 
-      let element = document.createElement("div");
+      const element = document.createElement("div");
 
       //AREA
       element.appendChild(
@@ -66,15 +66,11 @@ define(function() {
         new Measurement({
           view: view,
           activeTool: type,
-          id: 'david-' + type
+          id: "david-" + type
         });
       };
 
-      const clearMeasurement = type => {
-        // new Measurement({
-        //     view: view,
-        //     activeTool: type
-        //   }).clear();
+      const clearMeasurement = test => {
         view.tools.items = [];
       };
 
@@ -89,3 +85,4 @@ define(function() {
 
   return { load };
 });
+
