@@ -1,5 +1,5 @@
 {
-  "name": "EsriMap",
+  "name": "esri-map",
   "version": "1.0.0",
   "description": "Testing things",
   "main": "index.js",

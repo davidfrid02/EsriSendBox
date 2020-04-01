@@ -70,7 +70,7 @@ define(() => {
         });
       };
 
-      const clearMeasurement = test => {
+      const clearMeasurement = () => {
         view.tools.items = [];
       };
 
