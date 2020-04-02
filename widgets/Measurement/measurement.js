@@ -74,7 +74,7 @@ define(() => {
         view.tools.items = [];
       };
 
-      measurement = new Expand({
+      const measurement = new Expand({
         expandIconClass: "esri-icon-measure-line",
         view: view,
         content: element

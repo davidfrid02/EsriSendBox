@@ -6,6 +6,12 @@
   "parserOptions": {
     "ecmaVersion": 2018
   },
+  "globals": {
+    "define": "readonly",
+    "describe": "readonly",
+    "test": "readonly",
+    "expect": "readonly"
+},
   "rules": {
     "func-names": ["error", "never"],
     "indent": [2, 2, {"SwitchCase": 1}],
@@ -13,7 +19,8 @@
     "no-unused-vars": "error",
     "prefer-const": "error",
     "no-console": 1,
-    "no-var": "error"
+    "no-var": 1,
+    "no-undef": "error"
     
   }
 }
