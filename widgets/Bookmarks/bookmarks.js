@@ -1,4 +1,5 @@
 define(() => {
+  //comment
   const load = view => {
     require(["esri/widgets/Expand", "esri/widgets/Bookmarks"], function(
       Expand,
