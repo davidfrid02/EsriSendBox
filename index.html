@@ -17,53 +17,102 @@
       }
     </style>
 
-<!-- <script src="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/dojo.js"></script> -->
+    <!-- <script src="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/dojo.js"></script> -->
     <link
       rel="stylesheet"
       href="https://js.arcgis.com/4.14/esri/css/main.css"
     />
     <script>
       var locationPath = location.pathname.replace(/\/[^\/]+$/, "");
-        window.dojoConfig = {
+      window.dojoConfig = {
         parseOnLoad: true,
         packages: [
-          { name: "Measurement", location: locationPath + "/widgets/Measurement/", main: 'measurement' },
-          { name: "Bookmarks", location: locationPath + "/widgets/Bookmarks/", main: 'bookmarks' }
-        ]
+          {
+            name: "Measurement",
+            location: locationPath + "/widgets/Measurement/",
+            main: "measurement",
+          },
+          {
+            name: "Bookmarks",
+            location: locationPath + "/widgets/Bookmarks/",
+            main: "bookmarks",
+          },
+          {
+            name: "timerSlider",
+            location: locationPath + "/widgets/TimeSlider/",
+            main: "timeSlider",
+          },
+          {
+            name: "GWTree",
+            location: locationPath + "/widgets/GWTree/",
+            main: "GWTree",
+          },
+          {
+            name: "LayersConfig",
+            location: locationPath + "/widgets/GWTree/",
+            main: "LayersConfig",
+          },
+          {
+            name: "vanillatree",
+            location: locationPath + "/widgets/GWTree/",
+            main: "vanillatree",
+          },
+        ],
       };
     </script>
     <script src="https://js.arcgis.com/4.14/"></script>
-    
+
     <script>
       require([
         "esri/WebMap",
         "esri/views/MapView",
+        "esri/widgets/LayerList",
         "Measurement",
-        "Bookmarks"
-
-      ], function(WebMap, MapView, Measurement, Bookmarks) {
-
+        "Bookmarks",
+        "timerSlider",
+        "GWTree",
+      ], function (
+        WebMap,
+        MapView,
+        LayerList,
+        Measurement,
+        Bookmarks,
+        TimeSlider,
+        GWTree
+      ) {
         const webmap = new WebMap({
           portalItem: {
             // autocasts as new PortalItem()
-            id: "aa1d3f80270146208328cf66d022e09c"
-          }
+            id: "aa1d3f80270146208328cf66d022e09c",
+          },
         });
         // var map = new Map({
         //   basemap: "topo-vector"
         // });
 
-        
-        
         var view = new MapView({
           container: "viewDiv",
           map: webmap,
           center: [34.834256, 32.433552],
-          zoom: 7
+          zoom: 7,
         });
-        
+
         Measurement.load(view);
         Bookmarks.load(view);
+        TimeSlider.load(view);
+
+        var layerList = new LayerList({
+          view: view,
+        });
+
+        view.ui.add(layerList, {
+          position: "top-right",
+        });
+
+        const gwTree = new GWTree({
+          view: view,
+        });
+        view.ui.add(gwtree, "top-left");
       });
     </script>
   </head>
