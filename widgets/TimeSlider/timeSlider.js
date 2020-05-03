@@ -26,8 +26,18 @@ define(() => {
         timeSlider: timeSlider,
       };
       view.ui.add(timeSlider, "bottom-left");
-      setTimeout(getTimeSliderAndAppendSelect, 200);
+
+      let uiBottomLeft = document.getElementsByClassName("esri-ui-bottom-left esri-ui-corner");
+      mutationObserver.observe(uiBottomLeft[0], {
+        attributes: true,
+        childList: true,
+        subtree: true,
+        });
     });
+      var mutationObserver = new MutationObserver(function(mutations) {
+        getTimeSliderAndAppendSelect();
+        mutationObserver.disconnect();
+      });
   };
 
   const getTimeSliderAndAppendSelect = () => {
