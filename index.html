@@ -38,9 +38,24 @@
             main: "bookmarks",
           },
           {
-            name: "timerSlider",
+            name: "TimerSlider",
             location: locationPath + "/widgets/TimeSlider/",
             main: "timeSlider",
+          },
+          {
+            name: "Sketch",
+            location: locationPath + "/widgets/Sketch/",
+            main: "sketch",
+          },
+          {
+            name: "LayerList",
+            location: locationPath + "/widgets/LayerList/",
+            main: "layerList",
+          },
+          {
+            name: "Selection",
+            location: locationPath + "/widgets/Selection/",
+            main: "selection",
           },
           {
             name: "GWTree",
@@ -64,35 +79,33 @@
 
     <script>
       require([
-        "esri/WebMap",
+        "esri/Map",
         "esri/views/MapView",
-        "esri/widgets/LayerList",
         "Measurement",
         "Bookmarks",
-        "timerSlider",
+        "TimerSlider",
         "GWTree",
+        "Sketch",
+        "LayerList",
+        "Selection"
       ], function (
-        WebMap,
+        Map,
         MapView,
-        LayerList,
         Measurement,
         Bookmarks,
         TimeSlider,
-        GWTree
+        GWTree,
+        Sketch,
+        LayerList,
+        Selection
       ) {
-        const webmap = new WebMap({
-          portalItem: {
-            // autocasts as new PortalItem()
-            id: "aa1d3f80270146208328cf66d022e09c",
-          },
+        var map = new Map({
+          basemap: "national-geographic",
         });
-        // var map = new Map({
-        //   basemap: "topo-vector"
-        // });
 
         var view = new MapView({
           container: "viewDiv",
-          map: webmap,
+          map: map,
           center: [34.834256, 32.433552],
           zoom: 7,
         });
@@ -100,14 +113,9 @@
         Measurement.load(view);
         Bookmarks.load(view);
         TimeSlider.load(view);
-
-        var layerList = new LayerList({
-          view: view,
-        });
-
-        view.ui.add(layerList, {
-          position: "top-right",
-        });
+        Sketch.load(view);
+        LayerList.load(view);
+        Selection.load(view);
 
         const gwTree = new GWTree({
           view: view,
