@@ -1,43 +1,44 @@
-define(() => {
-  var selectedDate = "ababab";
+define(["esri/widgets/TimeSlider"], (TimeSlider) => {
   const load = (view) => {
-    require(["esri/widgets/Expand", "esri/widgets/TimeSlider"], function (
-      Expand,
-      TimeSlider
-    ) {
-      const timeSlider = new TimeSlider({
-        container: "timeSliderDiv",
-        view: view,
-        // show data within a given time range
-        // in this case data within one year
-        mode: "time-window",
-        fullTimeExtent: {
-          // entire extent of the timeSlider
-          start: new Date(2000, 0, 1),
-          end: new Date(2010, 0, 1),
-        },
-        values: [
-          // location of timeSlider thumbs
-          new Date(2000, 0, 1),
-          new Date(2001, 1, 1),
-        ],
-      });
-      window.widgets = {
-        timeSlider: timeSlider,
-      };
-      view.ui.add(timeSlider, "bottom-left");
-
-      let uiBottomLeft = document.getElementsByClassName("esri-ui-bottom-left esri-ui-corner");
-      mutationObserver.observe(uiBottomLeft[0], {
-        attributes: true,
-        childList: true,
-        subtree: true,
-        });
+    const timeSlider = new TimeSlider({
+      container: "timeSliderDiv",
+      view: view,
+      // show data within a given time range
+      // in this case data within one year
+      mode: "time-window",
+      fullTimeExtent: {
+        // entire extent of the timeSlider
+        start: new Date(2000, 0, 1),
+        end: new Date(2010, 0, 1),
+      },
+      values: [
+        // location of timeSlider thumbs
+        new Date(2000, 0, 1),
+        new Date(2001, 1, 1),
+      ],
     });
-      var mutationObserver = new MutationObserver(function(mutations) {
-        getTimeSliderAndAppendSelect();
-        mutationObserver.disconnect();
-      });
+    window.widgets = {
+      timeSlider: timeSlider,
+    };
+
+    view.ui.add(timeSlider, "bottom-left");
+
+    let uiBottomLeft = document.getElementsByClassName(
+      "esri-ui-bottom-left esri-ui-corner"
+    );
+
+    
+    var mutationObserver = new MutationObserver(function (mutations) {
+      getTimeSliderAndAppendSelect();
+      mutationObserver.disconnect();
+    });
+    
+    mutationObserver.observe(uiBottomLeft[0], {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
+
   };
 
   const getTimeSliderAndAppendSelect = () => {
