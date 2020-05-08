@@ -33,16 +33,16 @@ define([
       ymin: 30,
       ymax: 40,
     },
-    400
+    100
   );
   const load = (view) => {
     const featureLayerPoints = createFeatureLayerPoints();
-    const graphicLayerSymbol = createGraphicLayerSymbol();
-    const featureLayerUniqueValueText = createFeatureLayerUniqueValueText();
+    //const graphicLayerSymbol = createGraphicLayerSymbol();
+    //const featureLayerUniqueValueText = createFeatureLayerUniqueValueText();
 
     view.map.layers.add(featureLayerPoints);
-    view.map.layers.add(graphicLayerSymbol);
-    view.map.layers.add(featureLayerUniqueValueText);
+    //view.map.layers.add(graphicLayerSymbol);
+    //view.map.layers.add(featureLayerUniqueValueText);
   };
 
   const createFeatureLayerPoints = () => {
