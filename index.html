@@ -53,6 +53,11 @@
             main: "layerList",
           },
           {
+            name: "Utils",
+            location: locationPath + "/widgets/utils/",
+            main: "utils",
+          },
+          {
             name: "Selection",
             location: locationPath + "/widgets/Selection/",
             main: "selection",
@@ -89,6 +94,7 @@
         "Sketch",
         "LayerList",
         "Selection",
+        "Utils"
       ], function (
         Map,
         MapView,
@@ -99,7 +105,8 @@
         GWTree,
         Sketch,
         LayerList,
-        Selection
+        Selection,
+        Utils
       ) {
         var map = new Map({
           basemap: "national-geographic",
@@ -119,6 +126,7 @@
         Sketch.load(view);
         LayerList.load(view);
         Selection.load(view);
+        Utils.load(view);
 
         const gwTree = new GWTree({
           view: view,
