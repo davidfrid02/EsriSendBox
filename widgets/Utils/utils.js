@@ -1,82 +1,67 @@
-define(["esri/Graphic", "esri/layers/FeatureLayer"], (
-  Graphic,
-  FeatureLayer
-) => {
-  const load = (view) => {
-    const featureLayer = createFeature();
-    view.map.layers.add(featureLayer);
-  };
+define([
+  "esri/Graphic",
+  "esri/layers/FeatureLayer",
+  "esri/layers/GraphicsLayer",
+], (Graphic, FeatureLayer, GraphicsLayer) => {
 
-  const createFeature = () =>{
-    const pointCount = 1000;
-
-    const createPoints = (extent, count = 100) => {
-      return [...Array(count)].map((_, i) => {
-        let location = randomPointInRect(extent);
-        let point = {
-          type: "point", // autocasts as new Point()
-          x: location.x,
-          y: location.y,
-        };
-        return {
-          geometry: point,
-          attributes: {
-            ObjectID: i,
-            SymbolId: i % 50,
-            ProjectName: "Proj" + (i % 10),
-            SiteName: "SiteA",
-          },
-        };
-      });
-    };
-
-    const randomPointInRect = ({ xmin, ymin, xmax, ymax }) => {
-      return {
+  const createPoints = ({ xmin, ymin, xmax, ymax }, count = 100) => {
+    return [...Array(count)].map((_, i) => {
+      let location = {
         x: xmin + Math.random() * (xmax - xmin),
         y: ymin + Math.random() * (ymax - ymin),
       };
-    };
-
-    const features = createPoints(
-      {
-        xmin: 30,
-        xmax: 40,
-        ymin: 30,
-        ymax: 40,
-      },
-      pointCount
-    );
-
-    const getRandomColor = () => {
-      var letters = "0123456789ABCDEF";
-      var color = "#";
-      for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
-    };
-
-    const uniqueValues = [...Array(pointCount / 2)].map((_, i) => {
+      let point = {
+        type: "point", // autocasts as new Point()
+        x: location.x,
+        y: location.y,
+      };
       return {
-        // All features with value of "North" will be blue
-        value: i,
-        symbol: {
-          type: "simple-marker",
-          size: i < 10 ? 10 : i, // autocasts as new SimpleFillSymbol()
-          color: getRandomColor(),
+        geometry: point,
+        attributes: {
+          ObjectID: i,
+          SymbolId: i,
+          ProjectName: "Proj" + (i % 10),
+          SiteName: "SiteA",
         },
       };
     });
-    var renderer = {
-      type: "unique-value", // autocasts as new UniqueValueRenderer()
-      field: "SymbolId",
-      defaultSymbol: { type: "simple-fill" }, // autocasts as new SimpleFillSymbol()
-      uniqueValueInfos: uniqueValues,
-    };
+  };
+  let points = createPoints(
+    {
+      xmin: 30,
+      xmax: 40,
+      ymin: 30,
+      ymax: 40,
+    },
+    400
+  );
+  const load = (view) => {
+    const featureLayerPoints = createFeatureLayerPoints();
+    const graphicLayerSymbol = createGraphicLayerSymbol();
+    const featureLayerUniqueValueText = createFeatureLayerUniqueValueText();
 
+    view.map.layers.add(featureLayerPoints);
+    view.map.layers.add(graphicLayerSymbol);
+    view.map.layers.add(featureLayerUniqueValueText);
+  };
+
+  const createFeatureLayerPoints = () => {
     const featureLayer = new FeatureLayer({
-      source: features,
-      renderer: renderer,
+      title: "FeatureLayer",
+      source: points,
+      renderer: {
+        type: "simple", // autocasts as new SimpleRenderer()
+        symbol: {
+          type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+          size: 35,
+          color: "blue",
+          outline: {
+            // autocasts as new SimpleLineSymbol()
+            width: 0.5,
+            color: "white",
+          },
+        },
+      },
       objectIDField: "ObjectID",
       popupTemplate: {
         title: "{ProjectName}",
@@ -106,7 +91,87 @@ define(["esri/Graphic", "esri/layers/FeatureLayer"], (
       ],
     });
     return featureLayer;
-  }
+  };
+
+  const createGraphicLayerSymbol = () => {
+    let graphics = points.map((point) => {
+      return {
+        geometry: point.geometry,
+        symbol: getSymbol({
+          text: point.attributes.SymbolId,
+          color: "white",
+          fontSize: 14,
+          yOffset: 12,
+          xOffset: 15,
+        }),
+      };
+    });
+
+    var graphicsLayer = new GraphicsLayer({
+      title: "GraphicLayer",
+    });
+    graphicsLayer.addMany(graphics);
+    return graphicsLayer;
+  };
+
+  const createFeatureLayerUniqueValueText = () => {
+    let uniqueValues = [];
+    for (point of points) {
+      uniqueValues.push({
+        value: point.attributes.SymbolId,
+        symbol: getSymbol({
+          text: point.attributes.SymbolId,
+          color: "red",
+          fontSize: 24,
+          yOffset: 12,
+          xOffset: -15,
+        }),
+      });
+    }
+
+    var renderer = {
+      type: "unique-value", // autocasts as new UniqueValueRenderer()
+      field: "SymbolId",
+      uniqueValueInfos: uniqueValues,
+    };
+
+    const featureLayer = new FeatureLayer({
+      source: points,
+      objectIdField: "OBJECTID",
+      renderer: renderer,
+      fields: [
+        {
+          name: "ObjectID",
+          alias: "ObjectID",
+          type: "oid",
+        },
+        {
+          name: "SymbolId",
+          alias: "SymbolId",
+          type: "integer",
+        },
+      ],
+    });
+    return featureLayer;
+  };
+
+  let getSymbol = ({ text, color, fontSize, yOffset, xOffset }) => {
+    return {
+      type: "text", // autocasts as new TextSymbol()
+      color: color,
+      haloColor: "black",
+      haloSize: "1px",
+      text: text,
+      xoffset: xOffset,
+      yoffset: yOffset,
+      font: {
+        // autocasts as new Font()
+        size: fontSize,
+        family: "Josefin Slab",
+        weight: "bold",
+      },
+    };
+  };
 
   return { load };
 });
