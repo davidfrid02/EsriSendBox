@@ -52,18 +52,100 @@ define(["esri/widgets/Expand", "esri/widgets/LayerList"], (
           currRenderer.symbol.outline.width = value;
           break;
         case "outline-style":
-          currRenderer.symbol.outline.style = event.target.selectedOptions[0].value;
+          currRenderer.symbol.outline.style =
+            event.target.selectedOptions[0].value;
           break;
       }
       layer.renderer = currRenderer;
     }
   };
 
+  const changeLabel = (event, attribute) => {
+    const layerId = event.currentTarget.parentElement.layerId;
+    let layer = view.map.findLayerById(layerId);
+    let value = event.target.value;
+    let labelClass;
+    if (layer.labelingInfo) {
+      labelClass = layer.labelingInfo[0];
+    } else {
+      labelClass = {
+        symbol: {
+          type: "text",
+        },
+        labelExpressionInfo: {
+          expression: "$feature.SymbolId",
+        },
+      };
+    }
+    switch (attribute) {
+      case "field":
+        labelClass.labelExpressionInfo.expression = `$feature.${event.target.selectedOptions[0].value}`;
+        break;
+      case "color":
+        labelClass.symbol.color = value;
+        break;
+    }
+    layer.labelingInfo = [labelClass];
+  };
+
   const defineActions = (event) => {
     var item = event.item;
     const divPanel = document.createElement("div");
     divPanel.layerId = item.layer.id;
+    createSymbolSection(divPanel, item.layer.renderer);
+    createLabelSection(divPanel, item.layer);
 
+    item.panel = {
+      content: divPanel,
+    };
+  };
+
+  const createLabelSection = (element, layer) => {
+    let labelingInfo = layer.labelingInfo;
+    if (layer.fields && layer.fields.length) {
+      let fields = layer.fields.map((field) => field.name);
+      let field = fields[0];
+      let color = "blue";
+      // let size = 14;
+      // let style = "rectangle";
+      // let angle = 0;
+      // let outlineColor = "white";
+      // let outlineWidth = 1;
+      // let outlineStyle = "solid";
+      if (labelingInfo && labelingInfo.length) {
+        field = layer.labelingInfo[0].labelExpressionInfo.split(".")[1];
+        color = labelingInfo.symbol.color;
+        // size = renderer.labelingInfo.size;
+        // style = renderer.labelingInfo.style;
+        // angle = renderer.labelingInfo.angle;
+        // //OUTLINE
+        // if (renderer.labelingInfo.outline) {
+        //   outlineColor = renderer.symbol.outline.color;
+        //   outlineWidth = renderer.symbol.outline.width;
+        //   outlineStyle = renderer.symbol.outline.style;
+        // }
+      }
+
+      let header = document.createElement("p");
+      header.innerText = "======= Label! =======";
+      element.appendChild(header);
+
+      //need to put default value - field
+      createSelect(element, fields, "label");
+
+      createColorPicker(element, color, "label");
+      // createSizeSlider(element, size);
+      // createStyleSelect(element, style);
+      // createAngleSlider(element, angle);
+
+      // //==========OUTLINE=========
+      // createOutlineColorPicker(element, outlineColor);
+      // createOutlineWidthSlider(element, outlineWidth);
+      // createOutlineStyleSelect(element, outlineStyle);
+    }
+  };
+
+  const createSymbolSection = (element, renderer) => {
     let color = "blue";
     let size = 14;
     let style = "rectangle";
@@ -71,30 +153,32 @@ define(["esri/widgets/Expand", "esri/widgets/LayerList"], (
     let outlineColor = "white";
     let outlineWidth = 1;
     let outlineStyle = "solid";
-    if (item.layer.renderer && item.layer.renderer.symbol) {
-      color = item.layer.renderer.symbol.color;
-      size = item.layer.renderer.symbol.size;
-      style = item.layer.renderer.symbol.style;
-      angle = item.layer.renderer.symbol.angle;
-      if (item.layer.renderer.symbol.outline) {
-        outlineColor = item.layer.renderer.symbol.outline.color;
-        outlineWidth = item.layer.renderer.symbol.outline.width;
-        outlineStyle = item.layer.renderer.symbol.outline.style;
+    if (renderer && renderer.symbol) {
+      color = renderer.symbol.color;
+      size = renderer.symbol.size;
+      style = renderer.symbol.style;
+      angle = renderer.symbol.angle;
+      //OUTLINE
+      if (renderer.symbol.outline) {
+        outlineColor = renderer.symbol.outline.color;
+        outlineWidth = renderer.symbol.outline.width;
+        outlineStyle = renderer.symbol.outline.style;
       }
     }
-    createColorPicker(divPanel, color);
-    createSizeSlider(divPanel, size);
-    createStyleSelect(divPanel, style);
-    createAngleSlider(divPanel, angle);
+
+    let header = document.createElement("p");
+    header.innerText = "======= Symbology! =======";
+    element.appendChild(header);
+
+    createColorPicker(element, color, "symbol");
+    createSizeSlider(element, size);
+    createStyleSelect(element, style);
+    createAngleSlider(element, angle);
 
     //==========OUTLINE=========
-    createOutlineColorPicker(divPanel, outlineColor);
-    createOutlineWidthSlider(divPanel, outlineWidth);
-    createOutlineStyleSelect(divPanel, outlineStyle);
-
-    item.panel = {
-      content: divPanel,
-    };
+    createOutlineColorPicker(element, outlineColor);
+    createOutlineWidthSlider(element, outlineWidth);
+    createOutlineStyleSelect(element, outlineStyle);
   };
 
   const createSizeSlider = (element, value) => {
@@ -114,13 +198,19 @@ define(["esri/widgets/Expand", "esri/widgets/LayerList"], (
     element.appendChild(sizeSliderValue);
   };
 
-  const createColorPicker = (element, value) => {
+  const createColorPicker = (element, value, type) => {
     const colorPicker = document.createElement("input");
     colorPicker.type = "color";
     colorPicker.value = value;
-    colorPicker.onchange = (event) => {
-      changeSymbol(event, "color");
-    };
+    if (type == "symbol") {
+      colorPicker.onchange = (event) => {
+        changeSymbol(event, "color");
+      };
+    } else if (type == "label") {
+      colorPicker.onchange = (event) => {
+        changeLabel(event, "color");
+      };
+    }
     element.appendChild(colorPicker);
   };
 
@@ -135,7 +225,7 @@ define(["esri/widgets/Expand", "esri/widgets/LayerList"], (
       "triangle",
       "x",
     ];
-    for(option of optionsArray){
+    for (option of optionsArray) {
       createOption(selectStyle, option);
     }
     selectStyle.onchange = (event) => {
@@ -207,7 +297,7 @@ define(["esri/widgets/Expand", "esri/widgets/LayerList"], (
       "short-dot",
       "solid",
     ];
-    for(option of optionsArray){
+    for (option of optionsArray) {
       createOption(selectStyle, option);
     }
     selectStyle.onchange = (event) => {
@@ -215,6 +305,25 @@ define(["esri/widgets/Expand", "esri/widgets/LayerList"], (
     };
     element.appendChild(selectStyle);
   };
+
+  const createSelect = (element, optionsArray, type) =>{
+    const selectStyle = document.createElement("select");
+    for (option of optionsArray) {
+      createOption(selectStyle, option);
+    }
+    if(type == 'symbol'){
+
+    }
+    if(type == 'outline'){
+
+    }
+    if(type == 'label'){
+      selectStyle.onchange = (event) => {
+        changeLabel(event, 'field');
+      };
+    }
+    element.appendChild(selectStyle);
+  }
 
   const createOption = (selectElement, value) => {
     const option = document.createElement("option");
