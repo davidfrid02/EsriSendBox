@@ -16,6 +16,91 @@ define(["esri/widgets/Expand", "esri/widgets/LayerList"], (
     view.ui.add(expand, "top-right");
   };
 
+  const defineActions = (event) => {
+    var item = event.item;
+    const divPanel = document.createElement("div");
+    divPanel.layerId = item.layer.id;
+    createSymbolSection(divPanel, item.layer.renderer);
+    createLabelSection(divPanel, item.layer);
+
+    item.panel = {
+      content: divPanel,
+    };
+  };
+
+  // ===== SYMBOL ======
+  const createSymbolSection = (element, renderer) => {
+    let color = "blue";
+    let size = 14;
+    let style = "rectangle";
+    let angle = 0;
+    let outlineColor = "white";
+    let outlineWidth = 1;
+    let outlineStyle = "solid";
+    if (renderer && renderer.symbol) {
+      color = renderer.symbol.color;
+      size = renderer.symbol.size;
+      style = renderer.symbol.style;
+      angle = renderer.symbol.angle;
+      //OUTLINE
+      if (renderer.symbol.outline) {
+        outlineColor = renderer.symbol.outline.color;
+        outlineWidth = renderer.symbol.outline.width;
+        outlineStyle = renderer.symbol.outline.style;
+      }
+    }
+
+    let header = document.createElement("p");
+    header.innerText = "======= Symbology! =======";
+    element.appendChild(header);
+
+    createColorPicker(element, color, "symbol", "color");
+    createRange(element, "symbol", "size", "sizeSliderValue", {
+      value: size,
+      min: 1,
+      max: 100,
+    });
+    createSelect(
+      element,
+      ["circle", "cross", "diamond", "square", "triangle", "x"],
+      "symbol",
+      "style"
+    );
+    createRange(element, "symbol", "angle", "angleSliderValue", {
+      value: angle,
+      min: -180,
+      max: 180,
+    });
+
+    //==========OUTLINE=========
+    createColorPicker(element, outlineColor, "symbol", "outline-color");
+    createRange(element, "symbol", "outline-width", "outlineWidthSliderValue", {
+      value: angle,
+      min: 1,
+      max: 20,
+    });
+    createSelect(
+      element,
+      [
+        "dash",
+        "dash-dot",
+        "dot",
+        "inside-frame",
+        "long-dash",
+        "long-dash-dot",
+        "long-dash-dot-dot",
+        "none",
+        "short-dash",
+        "short-dash-dot",
+        "short-dash-dot-dot",
+        "short-dot",
+        "solid",
+      ],
+      "outline",
+      "style"
+    );
+  };
+
   const changeSymbol = (event, attribute) => {
     const layerId = event.currentTarget.parentElement.layerId;
     let layer = view.map.findLayerById(layerId);
@@ -60,53 +145,17 @@ define(["esri/widgets/Expand", "esri/widgets/LayerList"], (
     }
   };
 
-  const changeLabel = (event, attribute) => {
-    const layerId = event.currentTarget.parentElement.layerId;
-    let layer = view.map.findLayerById(layerId);
-    let value = event.target.value;
-    let labelClass;
-    if (layer.labelingInfo) {
-      labelClass = layer.labelingInfo[0];
-    } else {
-      labelClass = {
-        symbol: {
-          type: "text",
-        },
-        labelExpressionInfo: {
-          expression: "$feature.SymbolId",
-        },
-      };
-    }
-    switch (attribute) {
-      case "field":
-        labelClass.labelExpressionInfo.expression = `$feature.${event.target.selectedOptions[0].value}`;
-        break;
-      case "color":
-        labelClass.symbol.color = value;
-        break;
-    }
-    layer.labelingInfo = [labelClass];
-  };
-
-  const defineActions = (event) => {
-    var item = event.item;
-    const divPanel = document.createElement("div");
-    divPanel.layerId = item.layer.id;
-    createSymbolSection(divPanel, item.layer.renderer);
-    createLabelSection(divPanel, item.layer);
-
-    item.panel = {
-      content: divPanel,
-    };
-  };
-
+  /// ===== LABEL ====
   const createLabelSection = (element, layer) => {
     let labelingInfo = layer.labelingInfo;
     if (layer.fields && layer.fields.length) {
       let fields = layer.fields.map((field) => field.name);
+      fields.unshift("");
       let field = fields[0];
-      let color = "blue";
-      // let size = 14;
+      let color,
+        haloColor = "blue";
+      let size = 14;
+      let haloSize = 1;
       // let style = "rectangle";
       // let angle = 0;
       // let outlineColor = "white";
@@ -115,7 +164,9 @@ define(["esri/widgets/Expand", "esri/widgets/LayerList"], (
       if (labelingInfo && labelingInfo.length) {
         field = layer.labelingInfo[0].labelExpressionInfo.split(".")[1];
         color = labelingInfo.symbol.color;
-        // size = renderer.labelingInfo.size;
+        size = renderer.labelingInfo.size;
+        haloColor = renderer.labelingInfo.haloColor;
+        haloSize = renderer.labelingInfo.haloSize;
         // style = renderer.labelingInfo.style;
         // angle = renderer.labelingInfo.angle;
         // //OUTLINE
@@ -130,200 +181,168 @@ define(["esri/widgets/Expand", "esri/widgets/LayerList"], (
       header.innerText = "======= Label! =======";
       element.appendChild(header);
 
-      //need to put default value - field
-      createSelect(element, fields, "label");
+      createSelect(element, fields, "label", "field");
+      createColorPicker(element, color, "label", "color");
+      createSelect(
+        element,
+        [
+          "serif",
+          "sans-serif",
+          "Josefin Slab",
+          "Merriweather",
+          "fantasy",
+          "cursive",
+        ],
+        "label",
+        "font-family"
+      );
+      createSelect(
+        element,
+        ["8", "10", "12", "14", "16", "18", "20", "25", "30", "35", "40"],
+        "label",
+        "font-size"
+      );
 
-      createColorPicker(element, color, "label");
-      // createSizeSlider(element, size);
-      // createStyleSelect(element, style);
-      // createAngleSlider(element, angle);
+      createButton(element, "U", "U", "label", "font-decoration");
+      createButton(element, "B", "B", "label", "font-weight");
+      createButton(element, "I", "I", "label", "font-style");
+      createColorPicker(element, haloColor, "label", "haloColor");
+      createSelect(element, [...Array(10).keys()], "label", "haloSize");
 
-      // //==========OUTLINE=========
-      // createOutlineColorPicker(element, outlineColor);
-      // createOutlineWidthSlider(element, outlineWidth);
-      // createOutlineStyleSelect(element, outlineStyle);
+      createButton(element, "<", "top-left", "label", "alignment");
     }
   };
 
-  const createSymbolSection = (element, renderer) => {
-    let color = "blue";
-    let size = 14;
-    let style = "rectangle";
-    let angle = 0;
-    let outlineColor = "white";
-    let outlineWidth = 1;
-    let outlineStyle = "solid";
-    if (renderer && renderer.symbol) {
-      color = renderer.symbol.color;
-      size = renderer.symbol.size;
-      style = renderer.symbol.style;
-      angle = renderer.symbol.angle;
-      //OUTLINE
-      if (renderer.symbol.outline) {
-        outlineColor = renderer.symbol.outline.color;
-        outlineWidth = renderer.symbol.outline.width;
-        outlineStyle = renderer.symbol.outline.style;
-      }
-    }
-
-    let header = document.createElement("p");
-    header.innerText = "======= Symbology! =======";
-    element.appendChild(header);
-
-    createColorPicker(element, color, "symbol");
-    createSizeSlider(element, size);
-    createStyleSelect(element, style);
-    createAngleSlider(element, angle);
-
-    //==========OUTLINE=========
-    createOutlineColorPicker(element, outlineColor);
-    createOutlineWidthSlider(element, outlineWidth);
-    createOutlineStyleSelect(element, outlineStyle);
-  };
-
-  const createSizeSlider = (element, value) => {
-    const sizeSlider = document.createElement("input");
-    sizeSlider.type = "range";
-    sizeSlider.value = value;
-    sizeSlider.min = "1";
-    sizeSlider.max = "100";
-    sizeSlider.onchange = (event) => {
-      changeSymbol(event, "size");
-    };
-    const sizeSliderValue = document.createElement("p");
-    sizeSliderValue.innerText = value;
-    sizeSliderValue.className = "sizeSliderValue";
-
-    element.appendChild(sizeSlider);
-    element.appendChild(sizeSliderValue);
-  };
-
-  const createColorPicker = (element, value, type) => {
-    const colorPicker = document.createElement("input");
-    colorPicker.type = "color";
-    colorPicker.value = value;
-    if (type == "symbol") {
-      colorPicker.onchange = (event) => {
-        changeSymbol(event, "color");
-      };
-    } else if (type == "label") {
-      colorPicker.onchange = (event) => {
-        changeLabel(event, "color");
+  const changeLabel = (event, attribute) => {
+    const layerId = event.currentTarget.parentElement.layerId;
+    let layer = view.map.findLayerById(layerId);
+    let value = event.target.value;
+    let labelClass;
+    if (layer.labelingInfo) {
+      labelClass = layer.labelingInfo[0];
+    } else {
+      labelClass = {
+        symbol: {
+          type: "text",
+          font: {},
+        },
+        labelExpressionInfo: {
+          expression: "$feature.SymbolId",
+        },
       };
     }
-    element.appendChild(colorPicker);
-  };
-
-  const createStyleSelect = (element, value) => {
-    //need to save in array the styles and then select the value(default)
-    const selectStyle = document.createElement("select");
-    let optionsArray = [
-      "circle",
-      "cross",
-      "diamond",
-      "square",
-      "triangle",
-      "x",
-    ];
-    for (option of optionsArray) {
-      createOption(selectStyle, option);
+    switch (attribute) {
+      case "field":
+        let newField = event.target.selectedOptions[0].value;
+        if (newField != "") {
+          newField = `$feature.${newField}`;
+        }
+        labelClass.labelExpressionInfo.expression = newField;
+        break;
+      case "color":
+        labelClass.symbol.color = value;
+        break;
+      case "haloColor":
+        labelClass.symbol.haloColor = value;
+        break;
+      case "haloSize":
+        labelClass.symbol.haloSize = event.target.selectedOptions[0].value;
+      case "alignment":
+        //need to finish! not working good!
+        switch (value) {
+          case "top-left":
+            labelClass.symbol.horizontalAlignment = "left";
+            labelClass.symbol.verticalAlignment = "top";
+            break;
+        }
+        break;
+      // ==== FONT ====
+      case "font-family":
+        labelClass.symbol.font.family = event.target.selectedOptions[0].value;
+        break;
+      case "font-size":
+        labelClass.symbol.font.size = event.target.selectedOptions[0].value;
+        break;
+      case "font-decoration":
+        labelClass.symbol.font.decoration =
+          labelClass.symbol.font.decoration == "none" ? "underline" : "none";
+        break;
+      case "font-style":
+        labelClass.symbol.font.style =
+          labelClass.symbol.font.style == "normal" ? "italic" : "normal";
+        break;
+      case "font-weight":
+        labelClass.symbol.font.weight =
+          labelClass.symbol.font.weight == "normal" ? "bold" : "normal";
+        break;
     }
-    selectStyle.onchange = (event) => {
-      changeSymbol(event, "style");
-    };
-    element.appendChild(selectStyle);
+    layer.labelingInfo = [labelClass];
   };
 
-  const createAngleSlider = (element, value) => {
-    const sizeSlider = document.createElement("input");
-    sizeSlider.type = "range";
-    sizeSlider.value = value;
-    sizeSlider.min = "-180";
-    sizeSlider.max = "180";
-    sizeSlider.onchange = (event) => {
-      changeSymbol(event, "angle");
+  // ==================================
+  // ======= creator functions ========
+  // ==================================
+  const createButton = (element, text, value, type, attribute) => {
+    const button = document.createElement("button");
+    button.innerHTML = text;
+    button.value = value;
+    button.onclick = (event) => {
+      callbackFunction(event, type, attribute);
     };
-    const angleSliderValue = document.createElement("p");
-    angleSliderValue.innerText = value;
-    angleSliderValue.className = "angleSliderValue";
-
-    element.appendChild(sizeSlider);
-    element.appendChild(angleSliderValue);
+    element.appendChild(button);
   };
 
-  //==========OUTLINE=========
-  const createOutlineWidthSlider = (element, value) => {
-    const sizeSlider = document.createElement("input");
-    sizeSlider.type = "range";
-    sizeSlider.value = value;
-    sizeSlider.min = "1";
-    sizeSlider.max = "20";
-    sizeSlider.onchange = (event) => {
-      changeSymbol(event, "outline-width");
-    };
-    const sizeSliderValue = document.createElement("p");
-    sizeSliderValue.innerText = value;
-    sizeSliderValue.className = "outlineWidthSliderValue";
-
-    element.appendChild(sizeSlider);
-    element.appendChild(sizeSliderValue);
-  };
-
-  const createOutlineColorPicker = (element, value) => {
+  const createColorPicker = (element, value, type, attribute) => {
     const colorPicker = document.createElement("input");
     colorPicker.type = "color";
     colorPicker.value = value;
     colorPicker.onchange = (event) => {
-      changeSymbol(event, "outline-color");
+      callbackFunction(event, type, attribute);
     };
     element.appendChild(colorPicker);
   };
 
-  const createOutlineStyleSelect = (element, value) => {
-    //need to save in array the styles and then select the value(default)
-    const selectStyle = document.createElement("select");
-    let optionsArray = [
-      "dash",
-      "dash-dot",
-      "dot",
-      "inside-frame",
-      "long-dash",
-      "long-dash-dot",
-      "long-dash-dot-dot",
-      "none",
-      "short-dash",
-      "short-dash-dot",
-      "short-dash-dot-dot",
-      "short-dot",
-      "solid",
-    ];
-    for (option of optionsArray) {
-      createOption(selectStyle, option);
-    }
-    selectStyle.onchange = (event) => {
-      changeSymbol(event, "outline-style");
+  const createRange = (
+    element,
+    type,
+    attribute,
+    valueElement,
+    { value, min, max }
+  ) => {
+    const range = document.createElement("input");
+    range.type = "range";
+    range.value = value;
+    range.min = min;
+    range.max = max;
+    range.onchange = (event) => {
+      callbackFunction(event, type, attribute);
     };
-    element.appendChild(selectStyle);
+    const rangeValue = document.createElement("p");
+    rangeValue.innerText = value;
+    rangeValue.className = valueElement;
+
+    element.appendChild(range);
+    element.appendChild(rangeValue);
   };
 
-  const createSelect = (element, optionsArray, type) =>{
-    const selectStyle = document.createElement("select");
+  const createSelect = (element, optionsArray, type, attribute) => {
+    const select = document.createElement("select");
     for (option of optionsArray) {
-      createOption(selectStyle, option);
+      createOption(select, option);
     }
-    if(type == 'symbol'){
+    select.onchange = (event) => {
+      callbackFunction(event, type, attribute);
+    };
+    element.appendChild(select);
+  };
 
+  const callbackFunction = (event, type, attribute) => {
+    if (type == "symbol") {
+      changeSymbol(event, attribute);
+    } else if (type == "label") {
+      changeLabel(event, attribute);
     }
-    if(type == 'outline'){
-
-    }
-    if(type == 'label'){
-      selectStyle.onchange = (event) => {
-        changeLabel(event, 'field');
-      };
-    }
-    element.appendChild(selectStyle);
-  }
+  };
 
   const createOption = (selectElement, value) => {
     const option = document.createElement("option");
